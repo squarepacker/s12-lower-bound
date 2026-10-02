@@ -136,7 +136,7 @@ g++ -O2 -o indep_check tools/indep_check.cpp
   method: F. Göbel (1979), W. Stromquist (2003, s(11) ≥ 3.7889, the bound for s(12) before 2026);
   see Daniel's `CREDITS.md` for the full lineage.
 
-**Author:** Ryu Sungjoon(@squarepacker). The rescaling, the verification runs and `tools/indep_check.cpp` were prepared with the help of Claude (Anthropic).
+**Author:** Ryu Sungjoon (@squarepacker). The rescaling, the verification runs and `tools/indep_check.cpp` were prepared with the help of Claude (Anthropic).
 
 ## Limitations
 
