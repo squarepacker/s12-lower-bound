@@ -1,5 +1,7 @@
 # s(12) ≥ 31360/7901 ≈ 3.969118
 
+DOI: https://doi.org/10.5281/zenodo.23106582
+
 **Claim.** Twelve unit squares cannot be packed — interiors pairwise disjoint, each square
 rotated freely — into any square of side smaller than
 
