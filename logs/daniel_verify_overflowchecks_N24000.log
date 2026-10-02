@@ -1,0 +1,8 @@
+D4-symmetric atom set: true  -> angles cover [0,45] deg
+atoms=1736 total weight = 119738036/10000000 = 11.973804
+s = 31360/7901 = 3.969118
+angles: k=0..9942 (N=24000), covering [0,45deg]
+min covered weight over ALL placements = 10000056/10000000 = 1.000006  (at angle k=0)
+VERIFIED: every CLOSED unit square inside C covers weight >= 1, and total weight < 12.
+==> 12 unit squares cannot be packed into any square of side < 31360/7901 = 3.969117833,
+    i.e.  s(12) >= 3.969117833

@@ -1,0 +1,6 @@
+certificate: s = 31360/7901 = 3.969117833, D = 7901, W = 10000000, m = 1736
+total weight = 119738036/10000000 = 11.973803600   (n = 12: total < n)
+angle net N = 48000, bins k = 0..47999 covering [0,90] deg (no symmetry assumed), grid Q = 1000000000000000
+min captured weight over all bins = 10000056/10000000 = 1.000005600   (bin k=0, 0.0000 deg)
+  near centre (0.542980, 0.542980) at angle 0.000000 deg (diagnostic, floating point)
+VERIFIED: every closed unit square inside the container captures weight >= 1, and total weight < n

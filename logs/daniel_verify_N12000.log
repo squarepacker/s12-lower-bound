@@ -1,0 +1,13 @@
+D4-symmetric atom set: true  -> angles cover [0,45] deg
+atoms=1736 total weight = 119738036/10000000 = 11.973804
+s = 31360/7901 = 3.969118
+angles: k=0..4971 (N=12000), covering [0,45deg]
+  FAIL at angle k=362: covered 9867834/10000000
+  FAIL at angle k=361: covered 9867834/10000000
+  FAIL at angle k=363: covered 9867834/10000000
+  FAIL at angle k=364: covered 9867834/10000000
+  FAIL at angle k=365: covered 9867834/10000000
+  FAIL at angle k=366: covered 9867834/10000000
+  FAIL at angle k=367: covered 9867834/10000000
+min covered weight over ALL placements = 9867834/10000000 = 0.986783  (at angle k=361)
+NOT VERIFIED
