@@ -1,0 +1,8 @@
+D4-symmetric atom set: true  -> angles cover [0,45] deg
+atoms=1736 total weight = 119974008/10000000 = 11.997401
+s = 15886000/4000000 = 3.971500
+angles: k=0..39765 (N=96000), covering [0,45deg]
+PARTIAL RUN: VERIFY_BINS=0:0 -- only these bins are swept; this run cannot verify anything
+  FAIL at angle k=0: covered 9999850/10000000
+min covered weight over ALL placements = 9999850/10000000 = 0.999985  (at angle k=0)
+NOT VERIFIED (PARTIAL RUN: only bins 0..0 of 0..39764 were swept)

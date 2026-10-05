@@ -1,0 +1,397 @@
+\documentclass[11pt]{amsart}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage[margin=1.15in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\hypersetup{pdftitle={A lower bound of 7943/2000 for packing twelve unit squares in a square},pdfauthor={Sungjoon Ryu}}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Cs}{C_s}
+\newcommand{\wt}{\mathrm{w}}
+\newcommand{\om}{\underline{\omega}}
+
+% ---------------------------------------------------------------- certificate data
+\newcommand{\sfrac}{7943/2000}          % the bound, reduced
+\newcommand{\sdfrac}{\frac{7943}{2000}}
+\newcommand{\sdec}{3.9715}
+\newcommand{\Unum}{15886000}             % side numerator over D
+\newcommand{\certfile}{\texttt{s12\_lower\_3.9715.txt}}
+\newcommand{\Wtot}{119974808}            % total weight over 10^7
+\newcommand{\Wdec}{11.9974808}
+\newcommand{\minw}{10000050}             % least captured weight over 10^7, accepted runs
+\newcommand{\npos}{1736}
+\newcommand{\norbpos}{223}
+\newcommand{\norbzero}{0}
+\newcommand{\ndist}{186}
+\newcommand{\wlo}{1}
+\newcommand{\whi}{1097369}
+\newcommand{\devbound}{11/39200000}
+\newcommand{\shahash}{e2f326b28142cf22402f88357f4c7fe4680a08a32ae785b493adac335bcc2685}
+\newcommand{\lam}{31382793/31360000}
+
+\title[$s(12)\ge \sfrac$]{A lower bound of $\sfrac$ for packing twelve unit squares in a square}
+
+\author{Sungjoon Ryu}
+
+\date{October 5, 2026}
+
+\subjclass[2020]{52C15, 05B40, 90C05}
+\keywords{square packing, unit squares, lower bound, computer-assisted proof, weighted cover, linear programming}
+
+\begin{document}
+
+\begin{abstract}
+Let $s(n)$ be the infimum of the side lengths of squares into which $n$ unit squares with pairwise disjoint interiors can be placed, each square rotated freely. We prove
+\[
+  s(12)\ \ge\ \sdfrac = \sdec .
+\]
+This improves the lower bound $15680/3951=3.96861\ldots$ of E.~Daniel and the later bounds $31360/7901=3.96911\ldots$ of the author and $15680000/3949423=3.97020\ldots$ of the Squares Project of J.~Levy and collaborators, all from 2026. The proof is computer-assisted. As in the Squares Project's improvement, the certificate keeps Daniel's $1736$ points, moved to the new container by a dilation (here followed by rounding to a grid), and recomputes their weights by linear programming; here an exact scan of all angle bins is repeated inside the loop, and the cells of the bins it finds violated are added to the linear program. The certificate is accepted on a net of $N=96000$ angles by Daniel's verifier and by an independently written exact checker (and by the latter also on $N=192000$), and rejected on the coarser nets $N=24000$ and $N=48000$. We give the verification lemmas with proofs, describe the certificate and the computations, and explain why these points, with weights invariant under the symmetries of the square, cannot be pushed much further on this net: rows of points just below the lines $x=1$ and $x=2$ (and their images under the symmetries of the square) let the slightly shrunk test squares slip past them once the side exceeds about $3.97155$. The conjectured value is $s(12)=4$.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+A \emph{packing} of $n$ unit squares in a square $Z$ is a family of $n$ closed unit squares contained in $Z$, with pairwise disjoint interiors; each square may be rotated arbitrarily. Let $s(n)$ denote the infimum of the side lengths of squares admitting such a packing. The problem of determining $s(n)$ is surveyed by Friedman~\cite{Fri09}.
+
+For $n=12$ the obvious packing in a $4\times4$ grid gives $s(12)\le 4$, and no better packing is known; it is expected that $s(12)=4$. For a long time the best lower bound came from $n=11$ by monotonicity: Stromquist~\cite{Str03} proved $s(11)\ge 2+4/\sqrt5 = 3.7888\ldots$, hence $s(12)\ge 3.7888\ldots$.
+
+In August 2026, Burns~\cite{Bur26} and Massaccesi~\cite{Mas26a,Mas26b} introduced, for $n=17$, lower-bound certificates consisting of finitely many points with non-negative weights, checked in exact rational arithmetic; Massaccesi obtained the weights by linear programming and checked them over a rational net of angles. This extends the classical method of unavoidable point sets~\cite{Gob79,Str03}. Daniel~\cite{Dan26} applied the method to $n=12$, adding cutting planes and column generation to the linear programming, an exact arrangement-sweep verifier and a Lean formalisation of the reduction step, and obtained $s(12)\ge 15680/3951 = 3.96861554\ldots$.
+
+In~\cite{Ryu26} we observed that Daniel's certificate, dilated by the factor $7902/7901$, passes the covering check on a finer net of angles, which gives $s(12)\ge 31360/7901 = 3.96911783\ldots$. In the Squares Project~\cite{Lev26}, this dilation was pushed to $1568000/395039 = 3.96922835\ldots$ on the net $N=96000$, and then Daniel's points were kept but their weights recomputed by linear programming, which gave $s(12)\ge 15680000/3949423=3.97020020\ldots$~\cite{Lev26b}; that certificate was accepted by Daniel's verifier and by the project's own checker~\cite{Lev26c}. As of 5 October 2026 the frontier record of~\cite{Lev26} lists $15680000/3949423$ as the best lower bound for $s(12)$, and Daniel's repository still describes $15680/3951$ as the best bound known to its author.
+
+This note carries the re-weighting further.
+
+\begin{theorem}\label{thm:main}
+Twelve unit squares with pairwise disjoint interiors cannot be placed in a square of side less than $\sfrac$. Consequently
+\[
+  s(12)\ \ge\ \sdfrac = \sdec .
+\]
+\end{theorem}
+
+The improvement over the bounds just mentioned is
+\[
+  \sdfrac-\frac{15680000}{3949423}=\frac{10266889}{7898846000}\approx 1.30\cdot10^{-3},
+  \qquad
+  \sdfrac-\frac{15680}{3951}=\frac{22793}{7902000}\approx 2.88\cdot10^{-3},
+\]
+and the remaining gap to the conjectured value is $4-\sfrac = 57/2000 = 0.0285$.
+
+The certificate consists of Daniel's $1736$ points, moved by a dilation to the new container and rounded to a grid, with new weights. The weights were found by a cutting-plane linear program whose rows are cells from a sample of the angle bins and from the bins that an exact scan of all bins finds violated (Section~\ref{sec:howfound}). How they were found plays no role in the proof: the proof consists of the verification.
+
+We state the verification framework with complete proofs (Sections~\ref{sec:reduction} and~\ref{sec:verify}), describe the certificate (Section~\ref{sec:cert}) and the computations (Section~\ref{sec:comp}), and discuss the dependence on the angle net, the limit of these points, attempts with new points and the limits of the method (Section~\ref{sec:discussion}).
+
+\section{The reduction}\label{sec:reduction}
+
+For $c\in\R^2$, $\theta\in\R$ and $a>0$ let
+\[
+  S_a(c,\theta) = c + R_\theta\bigl([-a/2,a/2]^2\bigr),
+\]
+the closed square of side $a$ with centre $c$ and angle $\theta$, where $R_\theta$ is the rotation by $\theta$. We write $S(c,\theta)=S_1(c,\theta)$ and $\Cs=[0,s]^2$. Since $S_a(c,\theta+\pi/2)=S_a(c,\theta)$, we may always assume $\theta\in[0,\pi/2]$.
+
+A \emph{weighted point set} is a finite set $P\subset\R^2$ with weights $\wt\colon P\to[0,\infty)$. For a set $A\subseteq\R^2$ put $\wt(A)=\sum_{p\in P\cap A}\wt(p)$, and let $\wt(P)$ be the total weight. Points on the boundary of a closed square count as captured.
+
+\begin{definition}
+A weighted point set $(P,\wt)$ is a \emph{cover} of $\Cs$ if $\wt(S)\ge 1$ for every closed unit square $S\subseteq\Cs$.
+\end{definition}
+
+The following reduction, with closed squares and a concentric shrinking step, is the one used in~\cite{Bur26,Mas26a,Dan26}; Daniel has formalised it in Lean (\texttt{s12/lean/Sqpack/Basic.lean} in~\cite{Dan26}).
+
+\begin{lemma}\label{lem:reduction}
+Let $(P,\wt)$ be a cover of $\Cs$ with $\wt(P)<n$. Then $n$ unit squares with pairwise disjoint interiors cannot be placed in a square of side $s'<s$. In particular $s(n)\ge s$.
+\end{lemma}
+
+\begin{proof}
+Suppose $S(c_i,\theta_i)$, $i=1,\dots,n$, have pairwise disjoint interiors and lie in a square of side $s'<s$; after a rigid motion this square is $[0,s']^2$. Apply the dilation $x\mapsto\lambda x$ with $\lambda=s/s'>1$. The images $S_\lambda(\lambda c_i,\theta_i)$ lie in $\Cs$ and have pairwise disjoint interiors. Since $\lambda>1$, the closed unit square $T_i=S(\lambda c_i,\theta_i)$ lies in the interior of $S_\lambda(\lambda c_i,\theta_i)$. Hence the $T_i$ are pairwise disjoint closed unit squares contained in $\Cs$. Each $T_i$ satisfies $\wt(T_i)\ge1$, and no point of $P$ lies in two of them, so
+\[
+  n\ \le\ \sum_{i=1}^n \wt(T_i)\ \le\ \wt(P)\ <\ n,
+\]
+a contradiction. The bound on $s(n)$ follows because $s(n)$ is an infimum of admissible sides.
+\end{proof}
+
+\begin{remark}
+The closed convention is what makes the argument work: the strict inequality $s'<s$ is converted into disjointness of \emph{closed} squares, which is what allows a point on a common edge to be counted only once. The conclusion is $s(n)\ge s$, not $s(n)>s$.
+\end{remark}
+
+\section{Verifying the covering property}\label{sec:verify}
+
+The covering property is a statement about a three-parameter continuum of squares. It is reduced to finitely many exact computations as follows; this framework is the one of~\cite{Mas26a,Dan26}, and the same as in~\cite{Ryu26}.
+
+\subsection{The angle net}
+Fix an integer $N\ge3$ and put
+\[
+  \theta_k = 2\arctan\frac{k}{N}\qquad(k=0,1,\dots,N),
+\]
+so that $\theta_0=0$, $\theta_N=\pi/2$ and
+\[
+  \cos\theta_k=\frac{N^2-k^2}{N^2+k^2},\qquad \sin\theta_k=\frac{2kN}{N^2+k^2}
+\]
+are rational. Let $\delta_k=\theta_{k+1}-\theta_k$; its cosine and sine are rational by the subtraction formulas. Since $\arctan$ is concave on $[0,\infty)$, we have $\delta_k\le\delta_0=2\arctan(1/N)\le2\arctan(1/3)<\pi/4$. Put
+\[
+  \sigma_k=\frac{1}{\cos\delta_k+\sin\delta_k}\in(0,1).
+\]
+
+\begin{lemma}[shrinking]\label{lem:shrink}
+If $\theta\in[\theta_k,\theta_{k+1}]$, then $S_{\sigma_k}(c,\theta_k)\subseteq S(c,\theta)$ for every $c\in\R^2$.
+\end{lemma}
+
+\begin{proof}
+Translate $c$ to the origin and rotate by $-\theta$. Then $S(c,\theta)$ becomes $[-\tfrac12,\tfrac12]^2$ and $S_{\sigma_k}(c,\theta_k)$ becomes $R_{-\varphi}\bigl([-\sigma_k/2,\sigma_k/2]^2\bigr)$ with $\varphi=\theta-\theta_k\in[0,\delta_k]$. Each coordinate of each vertex $R_{-\varphi}(\pm\sigma_k/2,\pm\sigma_k/2)$ has absolute value at most $\tfrac{\sigma_k}{2}(\cos\varphi+\sin\varphi)$. The function $t\mapsto\cos t+\sin t=\sqrt2\sin(t+\pi/4)$ is increasing on $[0,\pi/4]$ and $\varphi\le\delta_k<\pi/4$, so this is at most $\tfrac{\sigma_k}{2}(\cos\delta_k+\sin\delta_k)=\tfrac12$. All four vertices lie in the convex set $[-\tfrac12,\tfrac12]^2$, hence so does their convex hull.
+\end{proof}
+
+\begin{lemma}[admissible centres]\label{lem:centres}
+Let $\theta\in[0,\pi/2]$ and $\omega(\theta)=\cos\theta+\sin\theta$. Then $S(c,\theta)\subseteq\Cs$ if and only if $c\in[\omega(\theta)/2,\ s-\omega(\theta)/2]^2$. Consequently, if $\theta\in[\theta_k,\theta_{k+1}]$ and $S(c,\theta)\subseteq\Cs$, then $c\in B_k$, where
+\[
+  B_k=[\om_k/2,\ s-\om_k/2]^2,\qquad \om_k=\min\bigl(\omega(\theta_k),\omega(\theta_{k+1})\bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+For $\theta\in[0,\pi/2]$ the projection of $S(c,\theta)$ to each coordinate axis is an interval of length $\omega(\theta)$ centred at the corresponding coordinate of $c$, and a set lies in the box $\Cs$ if and only if both projections lie in $[0,s]$. This proves the first claim. The function $\omega=\sqrt2\sin(\theta+\pi/4)$ is concave on $[0,\pi/2]$, so on $[\theta_k,\theta_{k+1}]$ it is at least its smaller endpoint value $\om_k$, and $[\omega(\theta)/2,s-\omega(\theta)/2]\subseteq[\om_k/2,s-\om_k/2]$.
+\end{proof}
+
+\begin{proposition}\label{prop:finite}
+Let $(P,\wt)$ be a weighted point set. Suppose that for every $k\in\{0,\dots,N-1\}$ and every $c\in B_k$,
+\[
+  F_k(c) := \wt\bigl(S_{\sigma_k}(c,\theta_k)\bigr)\ \ge\ 1 .
+\]
+Then $(P,\wt)$ is a cover of $\Cs$.
+\end{proposition}
+
+\begin{proof}
+Let $S(c,\theta)\subseteq\Cs$ with $\theta\in[0,\pi/2]$, and choose $k$ with $\theta\in[\theta_k,\theta_{k+1}]$. By Lemma~\ref{lem:centres}, $c\in B_k$. By Lemma~\ref{lem:shrink} and since weights are non-negative, $\wt(S(c,\theta))\ge\wt(S_{\sigma_k}(c,\theta_k))=F_k(c)\ge1$.
+\end{proof}
+
+\begin{lemma}[symmetry]\label{lem:sym}
+Suppose $(P,\wt)$ is invariant under the reflection $\rho(x,y)=(y,x)$, that is, $\rho(P)=P$ and $\wt\circ\rho=\wt$. If $\wt(S)\ge1$ for every closed unit square $S\subseteq\Cs$ with angle in $[0,\pi/4]$, then $(P,\wt)$ is a cover of $\Cs$. In particular, in Proposition~\ref{prop:finite} it suffices to check the bins with $\theta_k<\pi/4$.
+\end{lemma}
+
+\begin{proof}
+Let $S=S(c,\theta)\subseteq\Cs$ with $\theta\in(\pi/4,\pi/2]$. Since $\rho$ is a reflection, $\rho(S)=S(\rho c,-\theta)=S(\rho c,\pi/2-\theta)$, a closed unit square with angle in $[0,\pi/4)$, and $\rho(S)\subseteq\rho(\Cs)=\Cs$. By invariance $\wt(S)=\wt(\rho(S))\ge1$. For the last claim, the bins with $\theta_k<\pi/4$ cover all angles in $[0,\pi/4]$, and the proof of Proposition~\ref{prop:finite} applies to squares with such angles.
+\end{proof}
+
+\subsection{Minimising over the centres}\label{sec:cells}
+Fix $k$ and pass to the rotated frame $u=R_{-\theta_k}c$. A point $p$ lies in $S_{\sigma_k}(c,\theta_k)$ if and only if $u$ lies in the closed axis-parallel square $E_p=R_{-\theta_k}p+[-\sigma_k/2,\sigma_k/2]^2$. Thus, as a function of $u$,
+\[
+  F_k = \sum_{p\in P}\wt(p)\,\mathbf 1_{E_p}.
+\]
+The lines carrying the edges of the squares $E_p$ cut the plane into finitely many open rectangular cells.
+
+\begin{lemma}\label{lem:cells}
+Let $f=\sum_i a_i\mathbf 1_{E_i}$ with $a_i\ge0$ and closed axis-parallel rectangles $E_i$, and let $\mathcal Z$ be the set of open cells of the arrangement of the lines carrying their edges. Then $f$ is constant on each cell, and $f|_\Delta\le f(u)$ for every $u\in\R^2$ and every cell $\Delta\in\mathcal Z$ with $u\in\overline\Delta$.
+\end{lemma}
+
+\begin{proof}
+Each cell is either contained in the interior of $E_i$ or disjoint from $E_i$, so $f$ is constant on cells. If $\Delta\subseteq E_i$ then $u\in\overline\Delta\subseteq E_i$. Hence $f|_\Delta=\sum_{i:\,\Delta\subseteq E_i}a_i\le\sum_{i:\,u\in E_i}a_i=f(u)$.
+\end{proof}
+
+Since the closures of the cells cover the plane, it follows that
+\[
+  \min_{c\in B_k}F_k(c)\ \ge\ \min\bigl\{\,F_k|_\Delta : \Delta\in\mathcal Z,\ \overline\Delta\cap R_{-\theta_k}B_k\ne\emptyset\,\bigr\},
+\]
+a minimum over finitely many cells, which can be computed exactly by sweeping the arrangement. Each of the following replaces the computed quantity by a smaller one, and so still yields a lower bound for $\min_{B_k}F_k$: taking the minimum over a superset of the relevant cells; enlarging $B_k$; replacing $\sigma_k$ by a smaller number (smaller squares capture less).
+
+\subsection{Conservative rounding}
+The independent checker of Section~\ref{sec:comp} works on an integer grid of pitch $1/Q$. It replaces each rotated point $\hat p=R_{-\theta_k}p$ by $\hat P=\lfloor Q\hat p\rfloor$ (coordinatewise), the half-side $\sigma_k/2$ by $\hat h=\lfloor Q\sigma_k/2\rfloor-1$, and the domain $R_{-\theta_k}B_k$ by a set containing it.
+
+\begin{lemma}\label{lem:rounding}
+If $\|U-\hat P\|_\infty\le\hat h$ for some $U\in\R^2$, then $\|U/Q-\hat p\|_\infty\le\sigma_k/2$.
+\end{lemma}
+
+\begin{proof}
+For each coordinate, $|U_i-Q\hat p_i|\le|U_i-\hat P_i|+|\hat P_i-Q\hat p_i|<\hat h+1\le Q\sigma_k/2$.
+\end{proof}
+
+So every point captured on the grid is captured in truth, and the rounded capture function is at most the true one. Applying Lemma~\ref{lem:cells} to the rounded boxes, together with the enlargement of the domain, shows that the reported minimum is a lower bound for $\min_{c\in B_k}F_k(c)$.
+
+\section{The certificate}\label{sec:cert}
+
+The certificate file \certfile{} uses Daniel's format: a header
+\[
+  s=\Unum/4000000\ (=\sfrac),\qquad D=4000000,\qquad W=10^7,\qquad m=1736,
+\]
+followed by $m$ lines of integers $X_i,Y_i,a_i$, describing the points $(X_i/D,Y_i/D)$ with weights $a_i/W$.
+
+\subsection*{Points}
+The points are those of Daniel's certificate \texttt{s12\_lower\_3.9686.txt} (container side $s_0=15680/3951$; commit \texttt{7d6f46d} of~\cite{Dan26}), moved by the dilation $x\mapsto\kappa x$ with $\kappa=s/s_0=\lam\approx1.000727$ and rounded to the grid $D^{-1}\Z^2$. The rounding was applied to one representative of each of the $223$ orbits of the symmetry group of the container (the dihedral group of order $8$), and each orbit was then regenerated exactly from its rounded representative, so that the set is again invariant under this group. We rounded in three steps, through the containers of two earlier runs at slightly smaller sides; compared with the exact images of Daniel's points, every coordinate is off by at most $\devbound<2.9\cdot10^{-7}$.
+
+\subsection*{Weights}
+The weights are new. All $223$ orbits have positive weight, $20$ of them the smallest positive weight $1/W=10^{-7}$ (an artefact of rounding up an interior-point solution computed without crossover); the weights take $\ndist$ distinct values between $\wlo/10^7$ and $\whi/10^7$. Every orbit has a weight different from the one in Daniel's certificate.
+
+\subsection*{Basic facts}
+Checked exactly, by Daniel's verifier and by our own scripts:
+\begin{itemize}
+\item total weight $\Wtot/10^7=\Wdec<12$;
+\item all weights are non-negative, and all points lie in $[0,s]^2$;
+\item the weighted set is invariant under the symmetry group of the container;
+\item SHA-256 of the file: {\footnotesize\texttt{\shahash}}.
+\end{itemize}
+
+\subsection{How the weights were found}\label{sec:howfound}
+This subsection describes a heuristic search; nothing in it is used in the proof. We used a cutting-plane linear program in the spirit of Daniel's tightening procedure~\cite[\texttt{s12/search/TIGHTEN.md}]{Dan26} and of the re-weighting in~\cite{Lev26b}. The unknowns are the weights $x_O\ge0$ of the $223$ orbits $O$, and the objective is the total weight $\sum_O|O|\,x_O$. A \emph{row} is a pair $(k,\Delta)$ of a bin of the net $N=96000$ and a cell $\Delta$ of the arrangement that Daniel's verifier sweeps for that bin (Section~\ref{sec:cells}, with $\sigma_k$ and $\om_k$ rounded down to multiples of $10^{-6}$ as in Section~\ref{sec:comp}). With $A_\Delta$ the set of points captured by the test squares whose centres lie in $\Delta$ (computed exactly at the midpoint of $\Delta$), the row imposes
+\[
+  \sum_O |O\cap A_\Delta|\,x_O\ \ge\ 1+2\cdot10^{-6}.
+\]
+Each round
+\begin{enumerate}
+\item runs Daniel's verifier on the bin $k=0$, on the bins $k\equiv r\pmod{96}$, where $r$ changes from round to round, and on the bins flagged earlier, with its diagnostic output switched on, which lists up to $3000$ cells per bin whose captured weight under the current weights is at most $1.004$;
+\item keeps, per bin, up to $60$ of these cells that give new rows, the lowest captured weight first (cells of zero area and repeated capture sets are skipped), adds them, and re-solves the linear program with HiGHS (interior point method, without crossover);
+\item rounds the solution up to multiples of $10^{-7}$.
+\end{enumerate}
+Whenever the sampled bins were clean, or a round added fewer than $120$ rows, all $39765$ bins covering $[0,\pi/4]$ were scanned exactly by a version of the independent checker of Section~\ref{sec:comp} restricted to a range of bins; the $20$ worst violated bins and up to $300$ others, spread over the violated range, were flagged for the next round. The process stopped when the scan found no violated bin. The run that produced the present certificate started from the weights of an earlier run at a slightly smaller side; it was restarted once, keeping its rows. Its full scans found $695$, $675$, $67$ and finally $0$ violated bins, and its last linear program had $3973$ rows and value $11.9973834$. Rounding up gave the total weight $\Wdec$.
+
+The full scan matters. In this run the sampled bins first became clean (least captured weight $10000051/10^7$, with $3474$ rows), yet the full scan that followed found $695$ violated bins (least captured weight $0.9927$); later the sampled bins were clean again ($10000053/10^7$, $3946$ rows) and the scan still found $67$ (least $0.9989$). The rounds that followed these scans, whose rows came from the flagged bins together with the sampled ones, raised the optimal value from $11.9965556$ to $11.9973834$. Weights that are optimal against a sample of the bins can thus violate many of the others. (The re-weighting of~\cite{Lev26b} also checked its weights by complete sweeps; its first sweep refused six bins, which three further rounds focused on those bins repaired. The difference here is only that the complete scan is part of every cycle of the search.)
+
+\section{Computations}\label{sec:comp}
+
+Two programs were used.
+\begin{enumerate}
+\item \emph{Daniel's verifier} \texttt{verify} (Rust, \texttt{s12/verify} at commit \texttt{7d6f46d} of~\cite{Dan26}; this directory is unchanged in commit \texttt{7ff3b21} of 4 October 2026, the latest at the time of writing). We built it with Rust's overflow checks enabled, so that an integer overflow aborts the run. After verifying the symmetry of the point set, it checks the hypothesis of Proposition~\ref{prop:finite} for the bins covering $[0,\pi/4]$ (Lemma~\ref{lem:sym}) in exact \texttt{i128} arithmetic, with $\sigma_k$ and $\om_k$ rounded down to multiples of $10^{-6}$ (a smaller test square and a larger domain $B_k$), and minimises $F_k$ by an exact sweep of the arrangement.
+\item \emph{An independent checker} \texttt{tools/indep\_check.cpp} (C++, unchanged from~\cite{Ryu26}). It was written from the statements of Section~\ref{sec:verify}, not from Daniel's code, and shares no code with it. It sweeps all bins $k=0,\dots,N-1$ covering $[0,\pi/2]$ without using any symmetry, does not round $\sigma_k$ beyond the grid rounding of Lemma~\ref{lem:rounding} (default $Q=10^{15}$), queries a superset of the relevant cells with a segment tree, and performs all geometric arithmetic in \texttt{\_\_int128} with overflow checks (weight sums use 64-bit integers).
+\end{enumerate}
+
+Table~\ref{tab:runs} lists the results. A run is accepted when the reported minimum over all checked bins is at least $1$ and the total weight is less than $12$.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{@{}llrll@{}}
+\toprule
+Program & Angles & $N$ & Reported minimum (bin) & Verdict\\
+\midrule
+%RUNROWS
+\texttt{verify}, overflow checks on & $[0,\pi/4]$ + symmetry & $24000$ & $6737611/10^7$ ($k=0$) & rejected\\
+\texttt{verify}, overflow checks on & $[0,\pi/4]$ + symmetry & $96000$ & $\minw/10^7$ ($k=0$) & \textbf{accepted}\\
+\texttt{indep\_check} & $[0,\pi/2]$ & $24000$ & $6737611/10^7$ ($k=0$) & rejected\\
+\texttt{indep\_check} & $[0,\pi/2]$ & $48000$ & $9288526/10^7$ ($k=0$) & rejected\\
+\texttt{indep\_check} & $[0,\pi/2]$ & $96000$ & $\minw/10^7$ ($k=0$) & \textbf{accepted}\\
+\texttt{indep\_check} & $[0,\pi/2]$ & $192000$ & $\minw/10^7$ ($k=0$) & accepted\\
+\bottomrule
+\end{tabular}
+\caption{Covering checks of the certificate. Every minimum in the table is attained at $\theta_0=0$. On the nets $N=24000$ and $N=96000$, where both programs were run, they report the same minimum.}\label{tab:runs}
+\end{table}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+At $N=96000$ both programs report a lower bound of $\minw/10^7\ge1$ for $\min_{c\in B_k}F_k(c)$ over all bins they check: all bins for the independent checker, and the bins covering $[0,\pi/4]$ for \texttt{verify}. By Proposition~\ref{prop:finite} (with Lemma~\ref{lem:sym} for \texttt{verify}) the certificate is a cover of $[0,\sfrac]^2$. Its total weight is $\Wdec<12$, and Lemma~\ref{lem:reduction} gives the theorem.
+\end{proof}
+
+At $N=96000$, Daniel's verifier took about $49$ minutes on two threads and the independent checker about $8$ minutes on one core. On this net the reported minimum is the same in every bin: a scan of all $39765$ bins covering $[0,\pi/4]$ with the program of Section~\ref{sec:howfound} reports exactly $\minw/10^7$ for each of them. In the bins $k=0$, $12000$, $30000$ and $39000$, which we inspected, it is attained by test squares in a corner of the container that capture exactly the $58$ points of the certificate in $[0,1]^2$; their total weight is $\minw/10^7$.
+
+\subsection*{Control runs}
+To test that the checkers reject what they should, we made two altered copies of the certificate; both are rejected.
+\begin{itemize}
+\item \emph{One weight lowered.} The weight of the heaviest orbit ($8$ points of weight $\whi/10^7$, on the row $y=0.999967$ of Section~\ref{sec:rows} and its images) lowered by $100/10^7$. Two of these points lie in $[0,1]^2$, so the $58$ points in $[0,1]^2$ now carry $9999850/10^7$. The independent checker rejects the file, with this minimum at $\theta_0=0$, and Daniel's verifier, run on the single bins $k=0$ and $k=30000$ ($\theta\approx34.7^\circ$), reports $9999850/10^7$ in both.
+\item \emph{Container enlarged.} The same integers read with $D=3999600$, that is, the certificate dilated by $10000/9999$ to the side $15886000/3999600=3.97189\ldots$. The independent checker rejects it with minimum $6737611/10^7$ at $\theta_0=0$, near the centre $(0.500039,0.500039)$: a corner square that stays below the rows of Section~\ref{sec:rows}. Daniel's verifier, run on the single bin $k=0$, reports the same value; in the bin $k=30000$ it still finds $\minw/10^7$.
+\end{itemize}
+
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Dependence on the net}\label{sec:nets}
+The certificate is accepted on the net $N=96000$, against which its weights were optimised, and rejected on the coarser nets $N=24000$ and $N=48000$ (Table~\ref{tab:runs}). The nets are nested: $\theta_j$ for $N$ equals $\theta_{2j}$ for $2N$, so each bin of a coarser net is a union of bins of the finer one. A pass on the coarse net therefore implies a pass on the fine-net bins that start at an inherited angle, since such a bin is contained in a coarse bin and has the larger $\sigma$ and the smaller domain; for the other fine-net bins there is no such implication. In the converse direction there is none at all, and none was expected: a rejection on a coarse net only says that the shrinking of Lemma~\ref{lem:shrink}, which removes up to $1-\sigma_0\approx2/N$ from the side of the tested square, is too costly there.
+
+In all rejected runs the minimum occurs at $\theta_0=0$, and it has a simple cause, explained in the next subsection: rows of points that the test squares of this bin can avoid when they are small enough. (These rows are not the only obstacle on the coarsest net: at $N=24000$ Daniel's verifier also reports failures in the bins $k=1,\dots,6$, the first ones it prints.) At $N=24000$ the minimum $6737611/10^7$ is attained near the centre $(0.500004,0.500004)$, by a test square in the corner that stays below the rows $x=0.999967$ and $y=0.999967$; at $N=48000$ the minimum $9288526/10^7$ is attained near $(1.49995,1.49995)$, by a test square that fits between the rows near $x=1$ and $x=2$ and between those near $y=1$ and $y=2$. On the finer net $N=192000$ the certificate is accepted again, with the same minimum as on $N=96000$.
+
+\subsection{How far these points go}\label{sec:rows}
+Daniel's certificate contains rows of points on the lines $x=1-3/3951$ and $x=2(1-3/3951)$, and on their images under the symmetries of the square. After the dilation these lines become $x=\alpha$ and $x=2\alpha$ with
+\[
+  \alpha=\frac{3948}{3951}\,\kappa=\frac{3948\,s}{15680}.
+\]
+In the present certificate, after rounding, the rows lie at $x=3999868/D=0.999967$ and $x=7999735/D=1.9999338$; they carry $223$ points of total weight $1.3501$ and $30$ points of total weight $0.2037$, respectively (counting the points with $x$ or $y$ equal to the given value).
+
+These rows can be avoided in two ways by an axis-parallel closed square of side $\sigma$ whose centre lies in $B_0=[1/2,s-1/2]^2$:
+\begin{enumerate}
+\item[(i)] it fits strictly between the lines $x=\alpha$ and $x=2\alpha$ if and only if $\sigma<\alpha$;
+\item[(ii)] with its centre on the line $x=1/2$ it lies in $x\le(1+\sigma)/2$, and so misses the line $x=\alpha$ if and only if $(1+\sigma)/2<\alpha$.
+\end{enumerate}
+For actual unit squares both happen once $\alpha>1$, that is, for $s>560/141=3.97163\ldots$. The test squares of the bin $\theta_0=0$, however, have side $\sigma_0<1$; so in the check of Proposition~\ref{prop:finite} the rows are avoided in way~(i) for $s>(560/141)\,\sigma_0$ and in way~(ii) for $s>(560/141)(1+\sigma_0)/2$:
+\[
+  \begin{array}{rccc}
+    N & 1-\sigma_0 & \text{(i)}\ \ s>\frac{560}{141}\,\sigma_0 & \text{(ii)}\ \ s>\frac{560}{141}\cdot\frac{1+\sigma_0}{2}\\[3pt]
+    24000 & 8.33\cdot10^{-5} & 3.97130 & 3.97147\\
+    48000 & 4.17\cdot10^{-5} & 3.97147 & 3.97155\\
+    96000 & 2.08\cdot10^{-5} & 3.97155 & 3.97159\\
+    192000 & 1.04\cdot10^{-5} & 3.97159 & 3.97161
+  \end{array}
+\]
+For the rounded rows of the present certificate these thresholds change by less than $10^{-6}$. They explain the minima of the rejected runs at $N=24000$ and $N=48000$ (Section~\ref{sec:nets}), and they limit what these points can give on the net $N=96000$: the side $\sdec$ of Theorem~\ref{thm:main} lies within $5\cdot10^{-5}$ of the first threshold. Our computations agree. On that net the linear program of Section~\ref{sec:howfound} exceeded $12$ in its first round at $s=3.97155$ ($12.0052$ with $2244$ rows), just past the threshold of~(i) (there the gap between the rows exceeds $\sigma_0$ by less than $10^{-6}$; about $3.9\cdot10^{-7}$ for the unrounded rows), and it reached $12.0758$ at $s=3.9716$ ($39663$ rows). Each row is a condition that every set of weights accepted by Daniel's verifier on this net must satisfy (with $1$ in place of $1+2\cdot10^{-6}$), and adding rows can only increase the optimum of a minimisation. So these values are lower bounds, up to the accuracy of the floating-point solver, and on this net no weights that are invariant under the symmetry group pass Daniel's verifier for these points at $s=3.97155$. (Weights that are not invariant are not covered by this argument: averaging over the group preserves the covering property but not acceptance on a net, because the reflection $\rho$ does not map the net to itself.) Finer nets move the thresholds towards $560/141$, where actual unit squares start to slip past the rows; we have not tried to approach it. Daniel observed the same kind of cliff when he re-weighted the points of an earlier certificate: the linear program jumped to $13.8$ at the first step beyond its last feasible side~\cite[\texttt{s12/search/TIGHTEN.md}]{Dan26}.
+
+\subsection{New points}
+Larger gains need new points. We tried column generation: candidate points from a grid priced by the dual solution of the linear program, and the $4197$ orbits of Daniel's certificates \texttt{s12\_lower\_3.9676.txt} and \texttt{branch/s12\_t3.98\_corner\_k0/k1/k2.txt}~\cite{Dan26}. These runs used the coarser net $N=48000$, on which the rows of Section~\ref{sec:rows} are already avoided for $s>3.97147$, so that new points have to make up for them. At $s=3.9720$, with about $2500$ orbits, the restricted linear program stood at $11.990$ after $17$ rounds ($4631$ rows), but it had not converged: every round still found violated cells in the sampled bins, and the value was still rising as rows were added. Since columns were still being added, this value is not a lower bound for the problem with all candidate points, and since rows were still missing, the computed weights were not accepted; it says nothing either way. At $s=3.9718$, adding about $200$ orbits to Daniel's $223$, the value levelled off near $12.03$, with thousands of violated bins in every full scan. The runs were limited by our hardware: two cores, and the run at $3.9720$ ended when it reached a memory limit of about $6$\,GB. These attempts are inconclusive.
+
+\subsection{Limits of the method}
+The method cannot prove $s(12)=4$. Call a finite measure $\mu$ on the closed unit squares in $\Cs$ a \emph{fractional packing} if $\mu\{S: x\in S\}\le1$ for every point $x$. If $(P,\wt)$ is a cover of $\Cs$, then
+\[
+  \wt(P)\ \ge\ \sum_{p\in P}\wt(p)\,\mu\{S: p\in S\}\ =\ \int\wt(S)\,d\mu(S)\ \ge\ \mu(\text{all squares}),
+\]
+so every cover weighs at least the mass of every fractional packing. Daniel exhibits, in exact rational arithmetic, a fractional packing of mass $12.0282$ at $s=399/100$; hence no cover of weight less than $12$ exists for any $s\ge3.99$, and every closed-convention cover of $[0,4]^2$ has weight at least $12.2688$~\cite{Dan26}. Together with Theorem~\ref{thm:main}, the best bound this method can give for $n=12$ lies in $[\sdec,\,3.99)$. Daniel's notes report that his procedure, run on the net $N=6000$, did not produce a certificate at $s=1568/395=3.9696$ (its unconverged linear program stood at $11.976$, and cut-only re-optimisations on its supports ended at $12.02$ and $12.05$), and place the crossing of the method ``for point sets of this kind'' between $3.9686$ and about $3.970$~\cite[\texttt{s12/search/TIGHTEN.md}]{Dan26}; the certificates of~\cite{Lev26b} and of this note, checked on $N=96000$, show that on finer nets the same points go further. Proving $s(12)=4$ requires a different argument, such as a case analysis on the positions of the squares.
+
+\section{Reliability}\label{sec:reliability}
+
+The result rests on computation. Two programs that share no code report the same global minimum on the net on which the theorem rests (Table~\ref{tab:runs}). They do share the elementary framework of Section~\ref{sec:verify}, whose lemmas are proved above; an error there would affect both. Both use exact integer arithmetic, and both have been run with overflow detection. The reduction (Lemma~\ref{lem:reduction}) is formalised in Lean in~\cite{Dan26}; no Lean check of the present certificate has been made. The independent checker was written with the assistance of an AI system and has not been reviewed by anyone else. Moreover, the search of Section~\ref{sec:howfound} stopped only when a version of this checker, restricted to the bins covering $[0,\pi/4]$, found no violation on $N=96000$; its acceptance of those bins was therefore built into the search. The checks that the search did not anticipate are Daniel's full sweep of the final weights (the rows of the linear program came from his verifier only on the sampled and flagged bins), and the independent checker on the bins covering $(\pi/4,\pi/2]$, where it uses no symmetry, and on the net $N=192000$. The result has not been peer reviewed.
+
+\subsection*{Data availability}
+The certificate, its SHA-256 checksum, the outputs of all runs in Table~\ref{tab:runs}, the control certificates and their outputs, the logs of the linear-programming runs quoted in Section~\ref{sec:discussion}, the independent checker, and the scripts of Section~\ref{sec:howfound} are in release v1.1 of the repository \url{https://github.com/squarepacker/s12-lower-bound}, which is archived on Zenodo under the DOI \url{https://doi.org/10.5281/zenodo.23106581} (all versions).
+To reproduce:
+\begin{verbatim}
+# REPO = a copy of squarepacker/s12-lower-bound at release v1.1
+git clone https://github.com/evand/square-packing
+cd square-packing && git checkout 7d6f46d && cd s12/verify
+CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=true cargo build --release
+./target/release/verify $REPO/s12_lower_3.9715.txt 12 96000 2 0
+g++ -O2 -o indep_check $REPO/tools/indep_check.cpp
+./indep_check $REPO/s12_lower_3.9715.txt 96000
+\end{verbatim}
+
+\subsection*{Acknowledgements}
+The points of the certificate are Evan Daniel's, used under the MIT licence, and the verifier and the Lean formalisation are his~\cite{Dan26}. The idea of re-weighting Daniel's points on a fine net is due to the Squares Project~\cite{Lev26b}; its tool \path{packing/devtools/s12_reweight.py} on the branch of~\cite{Lev26b} (MIT licence) and Daniel's \path{s12/search/tighten.py} guided our implementation, which was written from scratch. The re-weighting, the scans, the verification runs and the independent checker were prepared with the assistance of the AI system Claude (Anthropic).
+
+\begin{thebibliography}{99}
+
+\bibitem{Bur26}
+S.~Burns, \emph{Proposing a better lower bound for $n=17$ square packing}, blog post, 6 August 2026, \url{https://sam-burns.com/posts/proposing-better-lower-bound-for-n17-square-packing/}.
+
+\bibitem{Dan26}
+E.~Daniel, \emph{square-packing}, software repository, commit \texttt{7d6f46d9d0780241245dfbf77bad28aa1594c6b5} (1 October 2026), \url{https://github.com/evand/square-packing}.
+
+\bibitem{Fri09}
+E.~Friedman, \emph{Packing unit squares in squares: a survey and new results}, Electron. J. Combin., Dynamic Survey DS7 (version of 14 August 2009).
+
+\bibitem{Gob79}
+F.~G\"obel, \emph{Geometrical packing and covering problems}, in: A.~Schrijver (ed.), Packing and Covering in Combinatorics, Math. Centre Tracts \textbf{106}, Amsterdam, 1979, pp.~179--199.
+
+\bibitem{Lev26}
+J.~Levy et al., \emph{The Squares Project}, software repository, \url{https://github.com/jlevy/squares}; frontier record for $n=12$ at \url{https://github.com/jlevy/squares/blob/main/packing/frontier/n-012.md}.
+
+\bibitem{Lev26b}
+J.~Levy (the Squares Project), \emph{Research: $s(12)$ beyond rescaling}, 2 October 2026, branch \texttt{claude/lane-bb-s12-improvement}, commit \texttt{32cd041}, \url{https://github.com/jlevy/squares/blob/32cd041c54c0e6ecebb7b3cf06e1fa0d3492c74f/docs/project/research/research-2026-10-02-s12-beyond-rescaling.md}.
+
+\bibitem{Lev26c}
+J.~Levy (the Squares Project), \emph{Adversarial review: the re-weighted $s(12)$ certificate}, 2--3 October 2026, branch \texttt{claude/lane-rv-s12-review}, commit \texttt{4b3c057}, \url{https://github.com/jlevy/squares/blob/4b3c0573ace10d7fb8c6175ff1b677dd714ebac3/docs/project/reviews/review-2026-10-02-s12-reweighted-certificate.md}.
+
+\bibitem{Mas26a}
+G.~Massaccesi, \emph{Another better lower bound for $n=17$ square packing}, blog post, 21 August 2026, \url{https://gus-massa.blogspot.com/2026/08/another-better-lower-bound-for-n17.html}.
+
+\bibitem{Mas26b}
+G.~Massaccesi, \emph{Linear programing for square packing}, blog post, 21 August 2026, \url{https://gus-massa.blogspot.com/2026/08/linear-programing-for-square-packing.html}.
+
+\bibitem{Ryu26}
+S.~Ryu, \emph{squarepacker/s12-lower-bound: $s(12)\ge31360/7901$ (v1.0)}, Zenodo, 2 October 2026, \url{https://doi.org/10.5281/zenodo.23106582}.
+
+\bibitem{Str03}
+W.~Stromquist, \emph{Packing 10 or 11 unit squares in a square}, Electron. J. Combin. \textbf{10} (2003), \#R8.
+
+\end{thebibliography}
+
+\end{document}

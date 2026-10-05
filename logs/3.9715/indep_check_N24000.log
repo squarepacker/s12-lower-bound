@@ -1,0 +1,6 @@
+certificate: s = 15886000/4000000 = 3.971500000, D = 4000000, W = 10000000, m = 1736
+total weight = 119974808/10000000 = 11.997480800   (n = 12: total < n)
+angle net N = 24000, bins k = 0..23999 covering [0,90] deg (no symmetry assumed), grid Q = 1000000000000000
+min captured weight over all bins = 6737611/10000000 = 0.673761100   (bin k=0, 0.0000 deg)
+  near centre (0.500004, 0.500004) at angle 0.000000 deg (diagnostic, floating point)
+NOT VERIFIED

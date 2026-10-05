@@ -33,3 +33,9 @@ SOFTWARE.
 
 The other files of this repository (README.md, tools/, logs/) are released under the same MIT
 licence terms, Copyright (c) 2026 Ryu Sungjoon.
+
+Added in v1.1: s12_lower_3.9715.txt keeps the 1736 points of the same certificate of Evan Daniel,
+dilated by (7943/2000)/(15680/3951) and rounded to the grid 1/4000000, with new weights; the files
+in controls/3.9715/ are altered copies of it used as test cases. They are derived material in the
+sense above. The other files added in v1.1 (paper/, logs/, search/, tools/, .zenodo.json) are
+released under the same MIT licence terms, Copyright (c) 2026 Ryu Sungjoon.
